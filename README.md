@@ -38,9 +38,17 @@ Firmware is programmed with [Arduino IDE](https://www.arduino.cc/en/Main/Softwar
 
 Source: [FreeCAD Model](case)
 
+FreeCAD website: http://www.freecadweb.org
+
 ![](img/case.png)
 
-### Keycaps & Stabilizer
+### Switches and Keycaps
+
+**Switches**
+
+Any cherry (or compatible) will do.
+
+Switch dimension: 15.6mm / 15.6mm
 
 **Keycaps:**
 
@@ -51,14 +59,28 @@ Supplier: http://pimpmykeyboard.com/blank-key-packs/dsa
 * 1.75u x 2
 * 6.25u x 1
 
+... where 1u == 19.05mm.
+
 It's best to use DSA or SA keycaps because DCS doesn't have certain length for the specific
 row some keys need to be on. For DCS the alternative solution is to get everything from R1.
 
-**Stabilizer:**
+### Spacebar and Stabilizer
+
+Only need one: 6.25u for the spacebar
+
+**Cherry stabilizer specification:**
+
+![](img/spacebar-cherry.png)
 
 Supplier: https://www.originativeco.com/products/cherry-pcb-mounted-stabilizer
 
-Only need one: 6.25u for the spacebar
+**Costar stabilizer specification:**
+
+![](img/spacebar-costar.png)
+
+**Keycap specification:**
+
+![](img/spacebar-keycap.jpg)
 
 ### Bill of Materials
 
