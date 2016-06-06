@@ -1,0 +1,215 @@
+[
+  {
+    "name": "FortyEight - Circuit and PCB: https://easyeda.com/qiushihe/FortyEight-06QK2We7p",
+    "author": "Billy He <qiushihe@me.com>",
+    "switchMount": "cherry",
+    "switchBrand": "cherry",
+    "switchType": "MX1A-G1xx",
+    "plate": false,
+    "pcb": true
+  },
+  [
+    {
+      "c": "#bbbbbb",
+      "t": "#0099cc\n#000000\n#cc0000\n\n\n\n\n#cc0000",
+      "sm": "cherry",
+      "sb": "cherry",
+      "st": "MX1A-G1xx",
+      "fa": [
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    "\nEsc\n~\n\n\n\n\n`",
+    {
+      "c": "#cccccc"
+    },
+    "F1\nQ\n!\n\n\n\n\n1",
+    {
+      "fa": [
+        2,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    "F2\nW\n@\n\n\n\n\n2",
+    {
+      "fa": [
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    "F3\nE\n#\n\n\n\n\n3",
+    "F4\nR\n$\n\n\n\n\n4",
+    "F5\nT\n%\n\n\n\n\n5",
+    "F6\nY\n^\n\n\n\n\n6",
+    "F7\nU\n&\n\n\n\n\n7",
+    "F8\nI\n*\n\n\n\n\n8",
+    "F9\nO\n(\n\n\n\n\n9",
+    "F10\nP\n)\n\n\n\n\n0",
+    {
+      "t": "#0099cc\n#000000\n#cc0000\n\n\n\n#000000\n#cc0000"
+    },
+    "F11\n[\n_\n\n\n\n{\n-",
+    "F12\n]\n+\n\n\n\n}\n=",
+    {
+      "c": "#bbbbbb",
+      "t": "#0099cc\n\n#cc0000\n#000000\n\n\n\n#cc0000",
+      "fa": [
+        2,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    "⏏\n\n|\n⌫\n\n\n\n\\"
+  ],
+  [
+    {
+      "t": "#0099cc\n#000000",
+      "w": 1.25
+    },
+    "\n<i class='kb kb-Line-Start-End'></i>",
+    {
+      "c": "#cccccc"
+    },
+    "\nA",
+    "\nS",
+    "\nD",
+    {
+      "n": true
+    },
+    "\nF",
+    "\nG",
+    "\nH",
+    {
+      "n": true
+    },
+    "\nJ",
+    "\nK",
+    "\nL",
+    {
+      "t": "#0099cc\n#000000\n\n\n\n\n#000000"
+    },
+    "\n;\n\n\n\n\n:",
+    "\n'\n\n\n\n\n\"",
+    {
+      "c": "#bbbbbb",
+      "t": "#0099cc\n\n\n#000000",
+      "w": 1.75
+    },
+    "\n\n\n⏎"
+  ],
+  [
+    {
+      "t": "#0099cc\n#000000",
+      "f": 3,
+      "w": 1.75
+    },
+    "⇪\n⇧",
+    {
+      "c": "#cccccc"
+    },
+    "\nZ",
+    "\nX",
+    "\nC",
+    "\nV",
+    "\nB",
+    "\nN",
+    "\nM",
+    {
+      "t": "#0099cc\n#000000\n\n\n\n\n#000000"
+    },
+    "\n,\n\n\n\n\n<",
+    "\n.\n\n\n\n\n>",
+    {
+      "w": 1.25
+    },
+    "\n/\n\n\n\n\n?",
+    {
+      "c": "#bbbbbb",
+      "t": "#000000",
+      "a": 7,
+      "f": 3
+    },
+    "▲",
+    {
+      "c": "#0099cc",
+      "t": "#ffffff",
+      "a": 4,
+      "f": 3
+    },
+    "Fn2"
+  ],
+  [
+    {
+      "c": "#bbbbbb",
+      "t": "#000000",
+      "a": 5,
+      "w": 1.25
+    },
+    "\n⌃",
+    {
+      "t": "#0099cc\n\n\n\n\n\n\n\n\n\n#000000",
+      "a": 4,
+      "f": 3,
+      "w": 1.25
+    },
+    "⎇\n\n\n\n\n\n\n\n\n\n⌥",
+    {
+      "t": "#000000",
+      "a": 5,
+      "w": 1.25
+    },
+    "\n⌘",
+    {
+      "c": "#cccccc",
+      "a": 7,
+      "w": 6.25
+    },
+    "",
+    {
+      "c": "#cc0000",
+      "t": "#ffffff",
+      "a": 4,
+      "f": 3
+    },
+    "\n\nFn1",
+    {
+      "c": "#bbbbbb",
+      "t": "#000000",
+      "a": 7,
+      "f": 3
+    },
+    "◀︎",
+    {
+      "f": 3
+    },
+    "▼",
+    {
+      "f": 3
+    },
+    "▶︎"
+  ]
+]
