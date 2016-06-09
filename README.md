@@ -36,9 +36,9 @@ Firmware is programmed with [Arduino IDE](https://www.arduino.cc/en/Main/Softwar
 
 ### Case
 
-Source: [FreeCAD Model](case)
+STL: [FortyEight Case V2](case/FortyEight-Case-V2.stl)
 
-FreeCAD website: http://www.freecadweb.org
+Online: https://cad.onshape.com/documents/feea34d0a9c6b57c6ef59bb9/w/05d58c69e3a7dbc46aef47f1/e/c60b2f45b17ec6026b843ee2
 
 ![](img/case.png)
 
