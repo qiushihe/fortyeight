@@ -82,6 +82,10 @@ Supplier: https://www.originativeco.com/products/cherry-pcb-mounted-stabilizer
 
 ![](img/spacebar-keycap.jpg)
 
+### Keycap Stickers
+
+http://www.4keyboard.com
+
 ### Bill of Materials
 
 * Switches: ~$50
