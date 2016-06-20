@@ -1,5 +1,7 @@
 # The FortyEight
 
+![](img/finished.jpg)
+
 ### Layout
 
 Source: [layout.kbd.json](layout/default.kbd.json)
