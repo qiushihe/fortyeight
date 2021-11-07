@@ -1,7 +1,7 @@
 [
   {
     "name": "FortyEight - Circuit and PCB: https://easyeda.com/qiushihe/FortyEight-06QK2We7p",
-    "author": "Billy He <qiushihe@me.com>",
+    "author": "Billy He <hello@billyhe.com>",
     "switchMount": "cherry",
     "switchBrand": "cherry",
     "switchType": "MX1A-G1xx",
@@ -144,20 +144,19 @@
     "\n,\n\n\n\n\n<",
     "\n.\n\n\n\n\n>",
     {
+      "f": 3,
       "w": 1.25
     },
-    "\n/\n\n\n\n\n?",
+    "<i class='fa fa-play'></i>/<i class='fa fa-pause'></i>\n/\n\n\n\n\n?",
     {
       "c": "#bbbbbb",
-      "t": "#000000",
-      "a": 7,
+      "t": "#0099cc",
       "f": 3
     },
-    "▲",
+    "<i class='fa fa-volume-up'></i>\n\n\n\n\n\n\n\n\n▲",
     {
       "c": "#0099cc",
       "t": "#ffffff",
-      "a": 4,
       "f": 3
     },
     "Fn2"
@@ -198,18 +197,17 @@
     "\n\nFn1",
     {
       "c": "#bbbbbb",
-      "t": "#000000",
-      "a": 7,
+      "t": "#0099cc",
       "f": 3
     },
-    "◀︎",
+    "<i class='fa fa-fast-backward'></i>\n\n\n\n\n\n\n\n\n◀︎",
     {
       "f": 3
     },
-    "▼",
+    "<i class='fa fa-volume-down'></i>\n\n\n\n\n\n\n\n\n▼",
     {
       "f": 3
     },
-    "▶︎"
+    "<i class='fa fa-fast-forward'></i>\n\n\n\n\n\n\n\n\n▶︎"
   ]
 ]
