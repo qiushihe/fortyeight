@@ -1,7 +1,6 @@
-#define DEBUG_MODE false
-#define DEBOUNCE_SWITCHES true
-#define DEBOUNCE_THRESHOLD 10
-#define DEBOUNCE_DEBUG_THRESHOLD 1000
+#define LOG_TO_SERIAL false
+#define LOOP_DELAY 10
+#define DUPLICATE_THRESHOLD 50
 
 #define PIN_ROW1 PIN_F0
 #define PIN_ROW2 PIN_F1
@@ -48,172 +47,108 @@ unsigned int layers[3][4][14] = {
   }
 };
 
-unsigned short int switchState[4][14] = {
+unsigned short int keyState[4][14] = {
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 };
 
-elapsedMillis switchUpTime[4][14];
-unsigned int switchDebounceTime[4][14] = {
+unsigned short int keyPressTime[4][14] = {
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 };
 
-unsigned int currentColumn = 1;
-unsigned int currentKey1 = 0;
-unsigned int currentModifier = 0;
+unsigned short int keyStateWas[4][14] = {
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+};
 
-#if DEBUG_MODE
-  elapsedMillis currentTime;
-  unsigned int lastUp;
-#endif
+unsigned short int keyLayerWas[4][14] = {
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+};
 
-int getCurrentLayer() {
-  if (switchState[3][9]) { return 1; }
-  if (switchState[2][12]) { return 2; }
-  return 0;
+int getRowPin(unsigned int row) {
+  int rowPin = 0;
+  if (row == 1) rowPin = PIN_ROW1;
+  if (row == 2) rowPin = PIN_ROW2;
+  if (row == 3) rowPin = PIN_ROW3;
+  if (row == 4) rowPin = PIN_ROW4;
+  return rowPin;
 }
 
 unsigned int getMediaKey(unsigned int key) {
-  if (key == KEY_MEDIA_PLAY_PAUSE) { return KEY_MEDIA_PLAY_PAUSE; }
-  if (key == KEY_MEDIA_PREV_TRACK) { return KEY_MEDIA_PREV_TRACK; }
-  if (key == KEY_MEDIA_NEXT_TRACK) { return KEY_MEDIA_NEXT_TRACK; }
-  if (key == KEY_MEDIA_VOLUME_INC) { return KEY_MEDIA_VOLUME_INC; }
-  if (key == KEY_MEDIA_VOLUME_DEC) { return KEY_MEDIA_VOLUME_DEC; }
-  if (key == KEY_MEDIA_EJECT) { return KEY_MEDIA_EJECT; }
+  if (key == KEY_MEDIA_PLAY_PAUSE) return KEY_MEDIA_PLAY_PAUSE;
+  if (key == KEY_MEDIA_PREV_TRACK) return KEY_MEDIA_PREV_TRACK;
+  if (key == KEY_MEDIA_NEXT_TRACK) return KEY_MEDIA_NEXT_TRACK;
+  if (key == KEY_MEDIA_VOLUME_INC) return KEY_MEDIA_VOLUME_INC;
+  if (key == KEY_MEDIA_VOLUME_DEC) return KEY_MEDIA_VOLUME_DEC;
+  if (key == KEY_MEDIA_EJECT) return KEY_MEDIA_EJECT;
   return 0;
 }
 
 unsigned int getModifierKey(unsigned int key) {
-  if (key == KEY_LEFT_SHIFT || key == KEY_RIGHT_SHIFT) { return MODIFIERKEY_SHIFT; }
-  if (key == KEY_LEFT_CTRL || key == KEY_RIGHT_CTRL) { return MODIFIERKEY_CTRL; }
-  if (key == KEY_LEFT_ALT || key == KEY_RIGHT_ALT) { return MODIFIERKEY_ALT; }
-  if (key == KEY_LEFT_GUI || key == KEY_RIGHT_GUI) { return MODIFIERKEY_GUI; }
+  if (key == KEY_LEFT_SHIFT || key == KEY_RIGHT_SHIFT) return MODIFIERKEY_SHIFT;
+  if (key == KEY_LEFT_CTRL || key == KEY_RIGHT_CTRL) return MODIFIERKEY_CTRL;
+  if (key == KEY_LEFT_ALT || key == KEY_RIGHT_ALT) return MODIFIERKEY_ALT;
+  if (key == KEY_LEFT_GUI || key == KEY_RIGHT_GUI) return MODIFIERKEY_GUI;
   return 0;
 }
 
-bool isPinOn(int pin) {
-  return !digitalRead(pin);
-}
+void sendKeyDown(int layer, int row, int column) {
+  unsigned int key = layers[layer][row - 1][column - 1];
+  unsigned int modifier = getModifierKey(key);
+  unsigned int media = getMediaKey(key);
 
-bool isSwitchUp(int row, int column) {
-  return !switchState[row - 1][column - 1];
-}
-
-bool isSwitchDown(int row, int column) {
-  return !!switchState[row - 1][column - 1];
-}
-
-bool isSwitchDebouncedDown(int row, int column) {
-  return switchDebounceTime[row - 1][column - 1] > DEBOUNCE_THRESHOLD;
-}
-
-void onKeyDown(int row, int column) {
-  if (DEBOUNCE_SWITCHES && switchUpTime[row - 1][column - 1] <= DEBOUNCE_THRESHOLD) {
-    switchUpTime[row - 1][column - 1] = 0;
-    switchDebounceTime[row - 1][column - 1] = switchUpTime[row - 1][column - 1] + DEBOUNCE_THRESHOLD;
-    return;
+  if (media) {
+    Keyboard.set_media(media);
+    Keyboard.send_now();
+  } else if (modifier) {
+    Keyboard.press(modifier);
+  } else if (key) {
+    Keyboard.press(key);
   }
-
-  switchState[row - 1][column - 1] = 1;
-
-  #if DEBUG_MODE
-    Keyboard.print("Down R");
-    Keyboard.print(row);
-    Keyboard.print(" C");
-    Keyboard.print(column);
-    Keyboard.print(" T");
-    
-    unsigned int thisDown = currentTime;
-    unsigned int diffTime = thisDown - lastUp;
-    
-    #if DEBOUNCE_SWITCHES
-      unsigned int diffThreshold = DEBOUNCE_THRESHOLD;
-    #else
-      unsigned int diffThreshold = DEBOUNCE_DEBUG_THRESHOLD;
-    #endif
-    
-    if (diffTime <= diffThreshold) {
-      Keyboard.print(thisDown);
-      Keyboard.print(" !!!");
-      Keyboard.println(diffTime);
-    } else {
-      Keyboard.println(thisDown);
-    }
-  #else
-    unsigned int key = layers[getCurrentLayer()][row - 1][column - 1];
-    unsigned int modifier = getModifierKey(key);
-    unsigned int media = getMediaKey(key);
-
-    if (media) {
-      Keyboard.set_media(media);
-      Keyboard.send_now();
-    } else if (modifier) {
-      currentModifier = currentModifier | modifier;
-      Keyboard.set_modifier(currentModifier);
-      Keyboard.send_now();
-    } else if (key) {
-      currentKey1 = key;
-      Keyboard.set_key1(currentKey1);
-      Keyboard.send_now();
-    }
-  #endif
 }
 
-void onKeyUp(int row, int column) {
-  switchState[row - 1][column - 1] = 0;
+void sendKeyUp(int layer, int row, int column) {
+  unsigned int key = layers[layer][row - 1][column - 1];
+  unsigned int modifier = getModifierKey(key);
+  unsigned int media = getMediaKey(key);
 
-  #if DEBUG_MODE
-    Keyboard.print("  Up R");
-    Keyboard.print(row);
-    Keyboard.print(" C");
-    Keyboard.print(column);
-    Keyboard.print(" T");
-    lastUp = currentTime;
-    Keyboard.println(lastUp);
-  #else
-    unsigned int key = layers[getCurrentLayer()][row - 1][column - 1];
-    unsigned int modifier = getModifierKey(key);
-    unsigned int media = getMediaKey(key);
-
-    if (media) {
-      Keyboard.set_media(0);
-      Keyboard.send_now();
-    } else if (modifier) {
-      currentModifier = currentModifier & ~modifier;
-      Keyboard.set_modifier(currentModifier);
-      Keyboard.send_now();
-    } else if (key) {
-      currentKey1 = 0;
-      Keyboard.set_key1(currentKey1);
-      Keyboard.send_now();
-    }
-  #endif
-
-  switchUpTime[row - 1][column - 1] = 0;
+  if (media) {
+    Keyboard.set_media(0);
+    Keyboard.send_now();
+  } else if (modifier) {
+    Keyboard.release(modifier);
+  } else if (key) {
+    Keyboard.release(key);
+  }
 }
 
 void activateColumn(unsigned int column) {
-  if (column != 1) { digitalWrite(PIN_COLUMN1, HIGH); }
-  if (column != 2) { digitalWrite(PIN_COLUMN2, HIGH); }
-  if (column != 3) { digitalWrite(PIN_COLUMN3, HIGH); }
-  if (column != 4) { digitalWrite(PIN_COLUMN4, HIGH); }
-  if (column != 5) { digitalWrite(PIN_COLUMN5, HIGH); }
-  if (column != 6) { digitalWrite(PIN_COLUMN6, HIGH); }
-  if (column != 7) { digitalWrite(PIN_COLUMN7, HIGH); }
-  if (column != 8) { digitalWrite(PIN_COLUMN8, HIGH); }
-  if (column != 9) { digitalWrite(PIN_COLUMN9, HIGH); }
-  if (column != 10) { digitalWrite(PIN_COLUMN10, HIGH); }
-  if (column != 11) { digitalWrite(PIN_COLUMN11, HIGH); }
-  if (column != 12) { digitalWrite(PIN_COLUMN12, HIGH); }
-  if (column != 13) { digitalWrite(PIN_COLUMN13, HIGH); }
-  if (column != 14) { digitalWrite(PIN_COLUMN14, HIGH); }
+  if (column != 1) digitalWrite(PIN_COLUMN1, HIGH);
+  if (column != 2) digitalWrite(PIN_COLUMN2, HIGH);
+  if (column != 3) digitalWrite(PIN_COLUMN3, HIGH);
+  if (column != 4) digitalWrite(PIN_COLUMN4, HIGH);
+  if (column != 5) digitalWrite(PIN_COLUMN5, HIGH);
+  if (column != 6) digitalWrite(PIN_COLUMN6, HIGH);
+  if (column != 7) digitalWrite(PIN_COLUMN7, HIGH);
+  if (column != 8) digitalWrite(PIN_COLUMN8, HIGH);
+  if (column != 9) digitalWrite(PIN_COLUMN9, HIGH);
+  if (column != 10) digitalWrite(PIN_COLUMN10, HIGH);
+  if (column != 11) digitalWrite(PIN_COLUMN11, HIGH);
+  if (column != 12) digitalWrite(PIN_COLUMN12, HIGH);
+  if (column != 13) digitalWrite(PIN_COLUMN13, HIGH);
+  if (column != 14) digitalWrite(PIN_COLUMN14, HIGH);
 
-  switch(column) {
+  switch (column) {
     case 1: return digitalWrite(PIN_COLUMN1, LOW);
     case 2: return digitalWrite(PIN_COLUMN2, LOW);
     case 3: return digitalWrite(PIN_COLUMN3, LOW);
@@ -228,13 +163,6 @@ void activateColumn(unsigned int column) {
     case 12: return digitalWrite(PIN_COLUMN12, LOW);
     case 13: return digitalWrite(PIN_COLUMN13, LOW);
     case 14: return digitalWrite(PIN_COLUMN14, LOW);
-  }
-}
-
-void advanceColumn() {
-  currentColumn = currentColumn + 1;
-  if (currentColumn > 14) {
-    currentColumn = 1;
   }
 }
 
@@ -259,33 +187,111 @@ void setup() {
   pinMode(PIN_COLUMN13, OUTPUT);
   pinMode(PIN_COLUMN14, OUTPUT);
 
+#if LOG_TO_SERIAL
+  // Start serial mode.
+  Serial.begin(9600);
+  // Enable serial output.
+  pinMode(11, OUTPUT);
+#endif
+
+  // Start keyboard mode.
   Keyboard.begin();
 }
 
 void loop() {
-  // Deactivate all columns and activate the current column
-  activateColumn(currentColumn);
+  unsigned long loopTime = millis();
 
-  // Check for key down
-  if (isPinOn(PIN_ROW1) && isSwitchUp(1, currentColumn)) { onKeyDown(1, currentColumn); }
-  if (isPinOn(PIN_ROW2) && isSwitchUp(2, currentColumn)) { onKeyDown(2, currentColumn); }
-  if (isPinOn(PIN_ROW3) && isSwitchUp(3, currentColumn)) { onKeyDown(3, currentColumn); }
-  if (isPinOn(PIN_ROW4) && isSwitchUp(4, currentColumn)) { onKeyDown(4, currentColumn); }
+  unsigned int curRow = 0;
+  unsigned int curCol = 0;
 
-  // Check for key up
-  if (!isPinOn(PIN_ROW1) && isSwitchDown(1, currentColumn)) { onKeyUp(1, currentColumn); }
-  if (!isPinOn(PIN_ROW2) && isSwitchDown(2, currentColumn)) { onKeyUp(2, currentColumn); }
-  if (!isPinOn(PIN_ROW3) && isSwitchDown(3, currentColumn)) { onKeyUp(3, currentColumn); }
-  if (!isPinOn(PIN_ROW4) && isSwitchDown(4, currentColumn)) { onKeyUp(4, currentColumn); }
+  for (curRow = 1; curRow <= 4; curRow++) {
+    for (curCol = 1; curCol <= 14; curCol++) {
+      // Determine the pin for the current row.
+      int curRowPin = getRowPin(curRow);
 
-  // Check for debounced key down
-  #if DEBOUNCE_SWITCHES
-    if (!isPinOn(PIN_ROW1) && isSwitchDebouncedDown(1, currentColumn)) { onKeyDown(1, currentColumn); }
-    if (!isPinOn(PIN_ROW2) && isSwitchDebouncedDown(2, currentColumn)) { onKeyDown(2, currentColumn); }
-    if (!isPinOn(PIN_ROW3) && isSwitchDebouncedDown(3, currentColumn)) { onKeyDown(3, currentColumn); }
-    if (!isPinOn(PIN_ROW4) && isSwitchDebouncedDown(4, currentColumn)) { onKeyDown(4, currentColumn); }
-  #endif
+      // Deactivate all columns other than the current column.
+      activateColumn(curCol);
 
-  // Advance to the next column
-  advanceColumn();
+      // A pin is considered "on" if the pin's signal is "low".
+      // So here we use `!` to check.
+      if (!digitalRead(curRowPin)) {
+        keyState[curRow - 1][curCol - 1] = 1;
+      } else {
+        keyState[curRow - 1][curCol - 1] = 0;
+      }
+
+      // Determine the current layer based on Fn key states.
+      unsigned int layer = 0;
+      if (keyState[3][9] == 1) layer = 1;
+      if (keyState[2][12] == 1) layer = 2;
+
+      // If the key was down ...
+      if (keyStateWas[curRow - 1][curCol - 1] == 1) {
+        // ... and still down ...
+        if (keyState[curRow - 1][curCol - 1] == 1) {
+          // ... then do nothing (no need to send "press" signal again).
+        }
+        // ... but is no longer down ...
+        else {
+          // ... then send the "release" signal ...
+          sendKeyUp(keyLayerWas[curRow - 1][curCol - 1], curRow, curCol);
+
+#if LOG_TO_SERIAL
+          Serial.print(loopTime);
+          Serial.print("] Up: l");
+          Serial.print(keyLayerWas[curRow - 1][curCol - 1]);
+          Serial.print(" / r");
+          Serial.print(curRow);
+          Serial.print(" / c");
+          Serial.print(curCol);
+          Serial.println();
+#endif
+
+          // ... and clear the previous states.
+          keyPressTime[curRow - 1][curCol - 1] = loopTime;
+          keyStateWas[curRow - 1][curCol - 1] = 0;
+          keyLayerWas[curRow - 1][curCol - 1] = 0;
+        }
+      }
+      // If the key was up ...
+      else {
+        // ... but is now down ...
+        if (keyState[curRow - 1][curCol - 1] == 1) {
+          unsigned long keyDeltaTime = loopTime - keyPressTime[curRow - 1][curCol - 1];
+
+          // ... and if delta time is greater than the duplicate detection threshold ...
+          if (keyDeltaTime > DUPLICATE_THRESHOLD) {
+            // ... then send the "press" signal ...
+            sendKeyDown(layer, curRow, curCol);
+
+#if LOG_TO_SERIAL
+            Serial.print(loopTime);
+            Serial.print("] Down: l");
+            Serial.print(layer);
+            Serial.print(" / r");
+            Serial.print(curRow);
+            Serial.print(" / c");
+            Serial.print(curCol);
+            Serial.print(" / kd");
+            Serial.print(loopTime - keyPressTime[curRow - 1][curCol - 1]);
+            Serial.println();
+#endif
+          }
+
+          // ... then update previous state regardless of key delta time.
+          // It's important for these updates to happen regardless of the current delta time
+          // because if these updates don't happen, a duplicate's delta time would be effectively
+          // taken out of the key's total available duplicate detection threshold, and then more
+          // duplicates could still potentially happen after the first duplicate. By updating the
+          // key's state regardless of delta time, we can prevent duplicates from "eating up" a
+          // key's total available duplicate detection time.
+          keyPressTime[curRow - 1][curCol - 1] = loopTime;
+          keyStateWas[curRow - 1][curCol - 1] = 1;
+          keyLayerWas[curRow - 1][curCol - 1] = layer;
+        }
+      }
+    }
+  }
+
+  delay(LOOP_DELAY);
 }
