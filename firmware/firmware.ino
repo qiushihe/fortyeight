@@ -1,6 +1,6 @@
 #define LOG_TO_SERIAL false
-#define LOOP_DELAY 10
-#define DUPLICATE_THRESHOLD 60
+#define LOOP_DELAY 6
+#define DUPLICATE_THRESHOLD 65
 
 #define PIN_ROW1 PIN_F0
 #define PIN_ROW2 PIN_F1
@@ -255,7 +255,7 @@ void loop() {
       }
       // If the key was up ...
       else {
-        // ... but is now down ...
+        // ... but the key is now down ...
         if (keyState[curRow - 1][curCol - 1] == 1) {
           unsigned long keyDeltaTime = loopTime - keyPressTime[curRow - 1][curCol - 1];
 
@@ -288,6 +288,10 @@ void loop() {
           keyPressTime[curRow - 1][curCol - 1] = loopTime;
           keyStateWas[curRow - 1][curCol - 1] = 1;
           keyLayerWas[curRow - 1][curCol - 1] = layer;
+        }
+        // ... and the key is still up ...
+        else {
+          // ... then do nothing.
         }
       }
     }
