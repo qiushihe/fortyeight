@@ -1,6 +1,6 @@
 #define LOG_TO_SERIAL false
 #define LOOP_DELAY 10
-#define DUPLICATE_THRESHOLD 50
+#define DUPLICATE_THRESHOLD 60
 
 #define PIN_ROW1 PIN_F0
 #define PIN_ROW2 PIN_F1
