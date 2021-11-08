@@ -1,6 +1,6 @@
 #define LOG_TO_SERIAL false
-#define LOOP_DELAY 6
-#define DUPLICATE_THRESHOLD 65
+#define LOOP_DELAY 5
+#define DUPLICATE_THRESHOLD 60
 
 #define PIN_ROW1 PIN_F0
 #define PIN_ROW2 PIN_F1
@@ -204,13 +204,13 @@ void loop() {
   unsigned int curRow = 0;
   unsigned int curCol = 0;
 
-  for (curRow = 1; curRow <= 4; curRow++) {
-    for (curCol = 1; curCol <= 14; curCol++) {
+  for (curCol = 1; curCol <= 14; curCol++) {
+    // Deactivate all columns other than the current column.
+    activateColumn(curCol);
+
+    for (curRow = 1; curRow <= 4; curRow++) {
       // Determine the pin for the current row.
       int curRowPin = getRowPin(curRow);
-
-      // Deactivate all columns other than the current column.
-      activateColumn(curCol);
 
       // A pin is considered "on" if the pin's signal is "low".
       // So here we use `!` to check.
@@ -276,18 +276,19 @@ void loop() {
             Serial.print(loopTime - keyPressTime[curRow - 1][curCol - 1]);
             Serial.println();
 #endif
-          }
 
-          // ... then update previous state regardless of key delta time.
-          // It's important for these updates to happen regardless of the current delta time
-          // because if these updates don't happen, a duplicate's delta time would be effectively
-          // taken out of the key's total available duplicate detection threshold, and then more
-          // duplicates could still potentially happen after the first duplicate. By updating the
-          // key's state regardless of delta time, we can prevent duplicates from "eating up" a
-          // key's total available duplicate detection time.
-          keyPressTime[curRow - 1][curCol - 1] = loopTime;
-          keyStateWas[curRow - 1][curCol - 1] = 1;
-          keyLayerWas[curRow - 1][curCol - 1] = layer;
+            // ... and update key states.
+            keyPressTime[curRow - 1][curCol - 1] = loopTime;
+            keyStateWas[curRow - 1][curCol - 1] = 1;
+            keyLayerWas[curRow - 1][curCol - 1] = layer;
+          }
+          // ... and if dalta time is less then the duplicate detection threshold ...
+          else {
+            // ... then do nothing and clear key states but keeps the loop time.
+            keyPressTime[curRow - 1][curCol - 1] = loopTime;
+            keyStateWas[curRow - 1][curCol - 1] = 0;
+            keyLayerWas[curRow - 1][curCol - 1] = 0;
+          }
         }
         // ... and the key is still up ...
         else {
