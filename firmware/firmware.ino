@@ -53,34 +53,32 @@ unsigned int layers[3][4][14] = {
   }
 };
 
-unsigned short int keyState[4][14] = {
+unsigned int keyState[4][14] = {
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 };
 
-unsigned short int keyStateWas[4][14] = {
+unsigned int keyStateWas[4][14] = {
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 };
 
-unsigned short int keyLayerWas[4][14] = {
+unsigned int keyLayerWas[4][14] = {
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 };
 
-int getRowPin(unsigned int row) {
-  int rowPin = 0;
-  if (row == 1) rowPin = PIN_ROW1;
-  if (row == 2) rowPin = PIN_ROW2;
-  if (row == 3) rowPin = PIN_ROW3;
-  if (row == 4) rowPin = PIN_ROW4;
-  return rowPin;
+unsigned int getLayer(unsigned int state[4][14]) {
+  unsigned int layer = LAYER_ZERO;
+  if (state[3][9] == KEY_STATE_DOWN) layer = LAYER_ONE;
+  if (state[2][12] == KEY_STATE_DOWN) layer = LAYER_TWO;
+  return layer;
 }
 
 unsigned int getMediaKey(unsigned int key) {
@@ -101,7 +99,19 @@ unsigned int getModifierKey(unsigned int key) {
   return 0;
 }
 
-void sendKeyDown(int layer, int row, int column) {
+bool isKeyDown(unsigned int row, unsigned int column) {
+  int rowPin = 0;
+  if (row == 1) rowPin = PIN_ROW1;
+  if (row == 2) rowPin = PIN_ROW2;
+  if (row == 3) rowPin = PIN_ROW3;
+  if (row == 4) rowPin = PIN_ROW4;
+
+  // A pin is considered "on" (i.e. it's associated with a switch that is pressed down) if
+  // the pin's signal is "low". So here we use `!` to check.
+  return !digitalRead(rowPin);
+}
+
+void sendKeyDown(unsigned int layer, unsigned int row, unsigned int column) {
   unsigned int key = layers[layer][row - 1][column - 1];
   unsigned int modifier = getModifierKey(key);
   unsigned int media = getMediaKey(key);
@@ -116,7 +126,7 @@ void sendKeyDown(int layer, int row, int column) {
   }
 }
 
-void sendKeyUp(int layer, int row, int column) {
+void sendKeyUp(unsigned int layer, unsigned int row, unsigned int column) {
   unsigned int key = layers[layer][row - 1][column - 1];
   unsigned int modifier = getModifierKey(key);
   unsigned int media = getMediaKey(key);
@@ -132,6 +142,8 @@ void sendKeyUp(int layer, int row, int column) {
 }
 
 void activateColumn(unsigned int column) {
+  // Setting a line to "high" indicates the line is "off".
+  // So here we turn off the lines for all columns except the given column.
   if (column != 1) digitalWrite(PIN_COLUMN1, HIGH);
   if (column != 2) digitalWrite(PIN_COLUMN2, HIGH);
   if (column != 3) digitalWrite(PIN_COLUMN3, HIGH);
@@ -147,30 +159,36 @@ void activateColumn(unsigned int column) {
   if (column != 13) digitalWrite(PIN_COLUMN13, HIGH);
   if (column != 14) digitalWrite(PIN_COLUMN14, HIGH);
 
+  // Setting a line to "low" indicates the line is "on".
+  // So here we only turn on the line for the given column.
   switch (column) {
-    case 1: return digitalWrite(PIN_COLUMN1, LOW);
-    case 2: return digitalWrite(PIN_COLUMN2, LOW);
-    case 3: return digitalWrite(PIN_COLUMN3, LOW);
-    case 4: return digitalWrite(PIN_COLUMN4, LOW);
-    case 5: return digitalWrite(PIN_COLUMN5, LOW);
-    case 6: return digitalWrite(PIN_COLUMN6, LOW);
-    case 7: return digitalWrite(PIN_COLUMN7, LOW);
-    case 8: return digitalWrite(PIN_COLUMN8, LOW);
-    case 9: return digitalWrite(PIN_COLUMN9, LOW);
-    case 10: return digitalWrite(PIN_COLUMN10, LOW);
-    case 11: return digitalWrite(PIN_COLUMN11, LOW);
-    case 12: return digitalWrite(PIN_COLUMN12, LOW);
-    case 13: return digitalWrite(PIN_COLUMN13, LOW);
-    case 14: return digitalWrite(PIN_COLUMN14, LOW);
+    case 1: digitalWrite(PIN_COLUMN1, LOW); break;
+    case 2: digitalWrite(PIN_COLUMN2, LOW); break;
+    case 3: digitalWrite(PIN_COLUMN3, LOW); break;
+    case 4: digitalWrite(PIN_COLUMN4, LOW); break;
+    case 5: digitalWrite(PIN_COLUMN5, LOW); break;
+    case 6: digitalWrite(PIN_COLUMN6, LOW); break;
+    case 7: digitalWrite(PIN_COLUMN7, LOW); break;
+    case 8: digitalWrite(PIN_COLUMN8, LOW); break;
+    case 9: digitalWrite(PIN_COLUMN9, LOW); break;
+    case 10: digitalWrite(PIN_COLUMN10, LOW); break;
+    case 11: digitalWrite(PIN_COLUMN11, LOW); break;
+    case 12: digitalWrite(PIN_COLUMN12, LOW); break;
+    case 13: digitalWrite(PIN_COLUMN13, LOW); break;
+    case 14: digitalWrite(PIN_COLUMN14, LOW); break;
   }
 }
 
 void setup() {
+  // Set pins for rows as input pins.
+  // This means from this program, we can determine if these pins are on or off.
   pinMode(PIN_ROW1, INPUT_PULLUP);
   pinMode(PIN_ROW2, INPUT_PULLUP);
   pinMode(PIN_ROW3, INPUT_PULLUP);
   pinMode(PIN_ROW4, INPUT_PULLUP);
 
+  // Set pins for columns as output pins.
+  // This means from this program, we can manipulate if these pins are on or off.
   pinMode(PIN_COLUMN1, OUTPUT);
   pinMode(PIN_COLUMN2, OUTPUT);
   pinMode(PIN_COLUMN3, OUTPUT);
@@ -201,26 +219,18 @@ void loop() {
   unsigned int curRow = 0;
   unsigned int curCol = 0;
 
+  // Loop over each column ...
   for (curCol = 1; curCol <= 14; curCol++) {
-    // Deactivate all columns other than the current column.
+    // ... and turn off all columns except the current column.
     activateColumn(curCol);
 
+    // ... then loop over each row in the current column.
     for (curRow = 1; curRow <= 4; curRow++) {
-      // Determine the pin for the current row.
-      int curRowPin = getRowPin(curRow);
-
-      // A pin is considered "on" if the pin's signal is "low".
-      // So here we use `!` to check.
-      if (!digitalRead(curRowPin)) {
-        keyState[curRow - 1][curCol - 1] = KEY_STATE_DOWN;
-      } else {
-        keyState[curRow - 1][curCol - 1] = KEY_STATE_UP;
-      }
+      // Update key down/up state.
+      keyState[curRow - 1][curCol - 1] = isKeyDown(curRow, curCol) ? KEY_STATE_DOWN : KEY_STATE_UP;
 
       // Determine the current layer based on Fn key states.
-      unsigned int layer = LAYER_ZERO;
-      if (keyState[3][9] == KEY_STATE_DOWN) layer = LAYER_ONE;
-      if (keyState[2][12] == KEY_STATE_DOWN) layer = LAYER_TWO;
+      unsigned int layer = getLayer(keyState);
 
       // If the key was down ...
       if (keyStateWas[curRow - 1][curCol - 1] == KEY_STATE_DOWN) {
