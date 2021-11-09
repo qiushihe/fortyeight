@@ -1,6 +1,4 @@
 #define LOG_TO_SERIAL false
-#define LOOP_DELAY 5
-#define DUPLICATE_THRESHOLD 60
 
 #define PIN_ROW1 PIN_F0
 #define PIN_ROW2 PIN_F1
@@ -26,6 +24,13 @@
 #define KEY_FN1 0
 #define KEY_FN2 0
 
+#define KEY_STATE_DOWN 1
+#define KEY_STATE_UP 0
+
+#define LAYER_ZERO 0
+#define LAYER_ONE 1
+#define LAYER_TWO 2
+
 unsigned int layers[3][4][14] = {
   {
     {KEY_ESC, KEY_Q, KEY_W, KEY_E, KEY_R, KEY_T, KEY_Y, KEY_U, KEY_I, KEY_O, KEY_P, KEY_LEFT_BRACE, KEY_RIGHT_BRACE, KEY_BACKSPACE},
@@ -48,13 +53,6 @@ unsigned int layers[3][4][14] = {
 };
 
 unsigned short int keyState[4][14] = {
-  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-};
-
-unsigned short int keyPressTime[4][14] = {
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -199,8 +197,6 @@ void setup() {
 }
 
 void loop() {
-  unsigned long loopTime = millis();
-
   unsigned int curRow = 0;
   unsigned int curCol = 0;
 
@@ -215,20 +211,20 @@ void loop() {
       // A pin is considered "on" if the pin's signal is "low".
       // So here we use `!` to check.
       if (!digitalRead(curRowPin)) {
-        keyState[curRow - 1][curCol - 1] = 1;
+        keyState[curRow - 1][curCol - 1] = KEY_STATE_DOWN;
       } else {
-        keyState[curRow - 1][curCol - 1] = 0;
+        keyState[curRow - 1][curCol - 1] = KEY_STATE_UP;
       }
 
       // Determine the current layer based on Fn key states.
-      unsigned int layer = 0;
-      if (keyState[3][9] == 1) layer = 1;
-      if (keyState[2][12] == 1) layer = 2;
+      unsigned int layer = LAYER_ZERO;
+      if (keyState[3][9] == KEY_STATE_DOWN) layer = LAYER_ONE;
+      if (keyState[2][12] == KEY_STATE_DOWN) layer = LAYER_TWO;
 
       // If the key was down ...
-      if (keyStateWas[curRow - 1][curCol - 1] == 1) {
+      if (keyStateWas[curRow - 1][curCol - 1] == KEY_STATE_DOWN) {
         // ... and still down ...
-        if (keyState[curRow - 1][curCol - 1] == 1) {
+        if (keyState[curRow - 1][curCol - 1] == KEY_STATE_DOWN) {
           // ... then do nothing (no need to send "press" signal again).
         }
         // ... but is no longer down ...
@@ -237,8 +233,7 @@ void loop() {
           sendKeyUp(keyLayerWas[curRow - 1][curCol - 1], curRow, curCol);
 
 #if LOG_TO_SERIAL
-          Serial.print(loopTime);
-          Serial.print("] Up: l");
+          Serial.print("Up:   l");
           Serial.print(keyLayerWas[curRow - 1][curCol - 1]);
           Serial.print(" / r");
           Serial.print(curRow);
@@ -248,47 +243,30 @@ void loop() {
 #endif
 
           // ... and clear the previous states.
-          keyPressTime[curRow - 1][curCol - 1] = loopTime;
-          keyStateWas[curRow - 1][curCol - 1] = 0;
-          keyLayerWas[curRow - 1][curCol - 1] = 0;
+          keyStateWas[curRow - 1][curCol - 1] = KEY_STATE_UP;
+          keyLayerWas[curRow - 1][curCol - 1] = LAYER_ZERO;
         }
       }
       // If the key was up ...
       else {
         // ... but the key is now down ...
-        if (keyState[curRow - 1][curCol - 1] == 1) {
-          unsigned long keyDeltaTime = loopTime - keyPressTime[curRow - 1][curCol - 1];
-
-          // ... and if delta time is greater than the duplicate detection threshold ...
-          if (keyDeltaTime > DUPLICATE_THRESHOLD) {
-            // ... then send the "press" signal ...
-            sendKeyDown(layer, curRow, curCol);
+        if (keyState[curRow - 1][curCol - 1] == KEY_STATE_DOWN) {
+          // ... then send the "press" signal ...
+          sendKeyDown(layer, curRow, curCol);
 
 #if LOG_TO_SERIAL
-            Serial.print(loopTime);
-            Serial.print("] Down: l");
-            Serial.print(layer);
-            Serial.print(" / r");
-            Serial.print(curRow);
-            Serial.print(" / c");
-            Serial.print(curCol);
-            Serial.print(" / kd");
-            Serial.print(loopTime - keyPressTime[curRow - 1][curCol - 1]);
-            Serial.println();
+          Serial.print("Down: l");
+          Serial.print(layer);
+          Serial.print(" / r");
+          Serial.print(curRow);
+          Serial.print(" / c");
+          Serial.print(curCol);
+          Serial.println();
 #endif
 
-            // ... and update key states.
-            keyPressTime[curRow - 1][curCol - 1] = loopTime;
-            keyStateWas[curRow - 1][curCol - 1] = 1;
-            keyLayerWas[curRow - 1][curCol - 1] = layer;
-          }
-          // ... and if dalta time is less then the duplicate detection threshold ...
-          else {
-            // ... then do nothing and clear key states but keeps the loop time.
-            keyPressTime[curRow - 1][curCol - 1] = loopTime;
-            keyStateWas[curRow - 1][curCol - 1] = 0;
-            keyLayerWas[curRow - 1][curCol - 1] = 0;
-          }
+          // ... and update key states.
+          keyStateWas[curRow - 1][curCol - 1] = KEY_STATE_DOWN;
+          keyLayerWas[curRow - 1][curCol - 1] = layer;
         }
         // ... and the key is still up ...
         else {
@@ -296,7 +274,15 @@ void loop() {
         }
       }
     }
+
+    // This 1ms delay, together with the 1ms delay below are important to prevent an issue
+    // where key strokes would randomly duplicate. While I still don't really understand why
+    // adding these delay addresses the issue, they nonetheless do.
+    delay(1);
   }
 
-  delay(LOOP_DELAY);
+  // This 1ms delay, together with the 1ms delay above are important to prevent an issue where
+  // key strokes would randomly duplicate. While I still don't really understand why adding
+  // these delay addresses the issue, they nonetheless do.
+  delay(1);
 }
