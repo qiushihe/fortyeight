@@ -1,3 +1,29 @@
+// Note pin input/output designations:
+//
+// * Currently:                      Row pins are used as input pins and column pins are used as
+//                                   output pins. This means that when checking for key activation
+//                                   status, signal is sent to a particular column pin, then loop
+//                                   over all the row pins to check which keys on that column are
+//                                   pressed down.
+//
+// * However:                        The above logic is actually the opposite of what it's supposed
+//                                   to be. Accordingly to the PCB design, column pins should be
+//                                   used as input and row pins should be used as output (see diols
+//                                   direction on the PCB).
+//
+// * The Reason:                     For using row and column pins for the opposite purposes they
+//                                   are designed for is because when soldering diols I soldered
+//                                   them all in the reverse direction (lol).
+//
+// * The "By-Design" Implementation: Is to use column pins as input pins and row pins as output pins.
+//                                   And when checking for key activation status, signal should be
+//                                   sent to a particular row pin, then loop over all the column pins
+//                                   to check which keys on that row are pressed down.
+//
+// * TODO:                           Implement support for specifying pin input/output designation
+//                                   mode so it would be easier to switch between "signal row check
+//                                   columns" vs. "signal column check rows".
+
 #define LOG_TO_SERIAL false
 
 #define PIN_ROW1 PIN_F0
@@ -224,6 +250,11 @@ void loop() {
     // ... and turn off all columns except the current column.
     activateColumn(curCol);
 
+    // This 1ms delay, together with the 1ms delay at the end of this function are important for
+    // seemingly stopping an issue from happening where key strokes would ramdonly repeat. While
+    // the actual cause of the issue is still unknown, having these delays nonetheless helps.
+    delay(1);
+
     // ... then loop over each row in the current column.
     for (curRow = 1; curRow <= 4; curRow++) {
       // Update key down/up state.
@@ -285,15 +316,10 @@ void loop() {
         }
       }
     }
-
-    // This 1ms delay, together with the 1ms delay below are important to prevent an issue
-    // where key strokes would randomly duplicate. While I still don't really understand why
-    // adding these delay addresses the issue, they nonetheless do.
-    delay(1);
   }
 
-  // This 1ms delay, together with the 1ms delay above are important to prevent an issue where
-  // key strokes would randomly duplicate. While I still don't really understand why adding
-  // these delay addresses the issue, they nonetheless do.
+  // This 1ms delay, together with the 1ms delay above are important for seemingly stopping
+  // an issue from happening where key strokes would ramdonly repeat. While the actual cause
+  // of the issue is still unknown, having these delays nonetheless helps.
   delay(1);
 }
